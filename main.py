@@ -2,6 +2,7 @@ from ckt_gen import netlist_design
 from gauss_var import gauss_dist
 from parameters import parameters
 import numpy as np
+import csv
 
 """
 This is the main function which defined the flow of code by calling different classes in it.
@@ -54,13 +55,29 @@ static_param = {"eps": 17,"epsphib":5.5,"phibn0":0.18, "phin":0.1,"un":4e-06,
 # parameter real eps_eff=eps*`P_EPS0; 							// static hafnium oxide permittivity 
 # parameter real epsphib_eff=epsphib*`P_EPS0; 					// hafnium oxide permittivity related to image force barrier lowering
 
-print("How many rows?")
-rows = int(input())
+with open('config.txt', 'r') as csv_file:
+	config = csv.reader(csv_file)
+	lines_num = 0
+	for line in config:
+		if lines_num == 0:
+			rows = int(line[0])
+			columns = int(line[1])
 
-print("\nHow many columns?")
-columns = int(input())
+		if lines_num == 1:
+			nmin_bool = int(line[0])	
+			nmax_bool = int(line[1])
+			ldet_bool = int(line[2])
+			rdet_bool = int(line[3])
 
-# set the size of crossbar rows and columns 
+		if lines_num == 2:
+			sim_type = line[0]
+			stop_time = line[1]
+			maxstep = line[2]
+			
+		lines_num += 1
+
+
+#set the size of crossbar rows and columns 
 cross_bar = ckt.set_cross_bar_params(rows, columns) #set the size of crossbar 
 
 # set type of input to crossbar and control the other variables
@@ -68,17 +85,17 @@ ckt.set_input_voltages(type_="pulse", vol0=-2, vol1=1.2, time_period="200n", pul
 #ckt.set_input_voltages(type_="pulse", vol0, vol1, time_period, pulse_width, rise_time, fall_time)
 
 #Tune the simulation parameters  - duration of simulation and step you want to take
-ckt.set_simulation_params(stop_time= "5u", maxstep ="1u" ) # set simulation type and stoptime
+ckt.set_simulation_params(sim_type, stop_time, maxstep) # set simulation type and stoptime
 
 # print("Set variability for each of 4 parameters: (0->False, 1->True)")
 # variab = str(input())
 
 # # set variabltiy - we can check the effect of variation using single or multiple parameter variation
-# current_var = ckt.set_variablity(Nmin=(variab[0]=='1'), Nmax=(variab[1]=='1'), ldet=(variab[2]=='1'), rdet=(variab[3]=='1'))
-#current_var = ckt.set_variablity(Nmin=False, Nmax=False, ldet=False, rdet=False) 
+# bools_var = ckt.set_variablity(Nmin=(variab[0]=='1'), Nmax=(variab[1]=='1'), ldet=(variab[2]=='1'), rdet=(variab[3]=='1'))
+#bools_var = ckt.set_variablity(Nmin=False, Nmax=False, ldet=False, rdet=False) 
 # Creates dictionary of the form {"Ndiscmin": Nmin, "Ndiscmax": Nmax, "rnew": rdet,"lnew": ldet
 # It is used by the update_param function to generate var_param to put on the top of the netlist, and also to 
-bools_var = ckt.set_variablity(Nmin=True, Nmax=True, ldet=True, rdet=True) 
+bools_var = ckt.set_variablity(Nmin = nmin_bool, Nmax = nmax_bool, ldet = ldet_bool, rdet = rdet_bool) 
 
 # check for variation and create a string for the first part of the netlist: if there are variations,
 # it will contain the variation parameters for each memristor in the xbar to be used then to 

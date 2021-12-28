@@ -17,7 +17,7 @@ class parameters(object):  # base class for parameters
 			self.device_model= "JART_VCM_1b_det"
 			# TO-DO
 			print ("please slelect the device = var")
-		self.set_default_params()
+		#self.set_default_params()
 
 	def set_device_parameters(self, param= {}, model_name="var"):
 		"""
@@ -102,7 +102,7 @@ class parameters(object):  # base class for parameters
 
 		#print("Voltage pulses generated.\n")
 
-	def set_simulation_params(self, type_ = "tran", stop_time= "10m", maxstep="1n" ):
+	def set_simulation_params(self, type_, stop_time, maxstep):
 
 		"""
 			intilize all the parameters required for spectre simulation
@@ -118,6 +118,8 @@ class parameters(object):  # base class for parameters
 		self.simulation_type = type_
 		self.simulation_maxstep = maxstep
 
+		print("Stop time: {}, Max step: {} are set for the simulation.\n".format(self.simulation_stop_time,self.simulation_maxstep))
+
 	def set_cross_bar_params(self, rows, columns):
 
 		"""
@@ -127,7 +129,7 @@ class parameters(object):  # base class for parameters
 		self.rows = rows
 		self.columns = columns
 
-		print("\n**{}x{} crossbar generated.\n".format(self.rows,self.columns))
+		print("{}x{} crossbar generated.\n".format(self.rows,self.columns))
 		return (self.rows,self.columns)
 
 	def set_variablity(self, Nmin=False, Nmax=False, rdet=False, ldet=False):

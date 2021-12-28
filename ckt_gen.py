@@ -55,15 +55,15 @@ class netlist_design(parameters):
 				ex with 2x2 xbar: d_to_d_vardict { "Ndiscmin": [5,2,4,6], "Ndiscmax": (4,1,2,8), "lnew": (3,2,2,4), "rnew": (45,56,4,2)}
 				"""
 				d_to_d_vardict[variation] = gauss_dist(mean_sigma_param[variation]).create_distribution((self.rows,self.columns))
-
+				
 				#gauss_dist(d_to_d[variation]).plot_variation(d_to_d_vardict[variation], bin_=30, line=True) # plot the parameters to check if gauss or not.
 
 		
 		if(len(d_to_d_vardict) == 0):
-			print("**No random variations!**\n")
+			print("No random variations!\n")
 		else:
 			var_param += gauss.make_paramset(d_to_d_vardict) 
-			print("**Parameters updated.**\n")
+			print("Parameters updated.\n")
 		
 		#if no variation is set, we'll have "parameters "+static_param
 		#otherwise, we'll have "parameters Ndiscmin0 = 5 Ndiscmin1 = 2 Ndiscmin2 = 4 Ndiscmin3 = 6 ......"
@@ -84,7 +84,7 @@ class netlist_design(parameters):
 			output:  -> creates a complete spectre netlist and return 
 
 		"""
-		print("Generating netlist...")
+		print("Generating netlist...\n")
 		device_parameter_including_variablity = {}
 		instance = ""
 		all_current = ""
@@ -118,16 +118,16 @@ class netlist_design(parameters):
 				instance += "I"+iteration +" (r{} c{}) ".format(rows,cols) + self.device_model + " " + device_parameter_including_variablity + "\n"
 
 				# save all the current fro debugging
-				all_current += "CIRCUITO.I{}:OE ".format(iteration) 
+				all_current += "XBAR.I{}:OE ".format(iteration) 
 
 		voltages_name, voltage_source  = self.design_voltage_sources()
 		end_ckt = "ends " + ckt_name + "\n"
-		subckt_instance = "CIRCUITO (" + voltages_name + ") " + ckt_name + "\n"  # subckt instance according to spectre simulation
+		subckt_instance = "XBAR (" + voltages_name + ") " + ckt_name + "\n"  # subckt instance according to spectre simulation
 		output_data = variables + "\n" + "subckt " + ckt_name + " " # create subckt
 
 		# all combined into single string
-		print("**Netlist generated.**")
-		all_current += "CIRCUITO.I2:AE"
+		print("Netlist generated.\n")
+		all_current += "XBAR.I2:AE"
 		return output_data + voltages_name +"\n" +instance + end_ckt + subckt_instance + voltage_source + "\n save " +all_current + "\n" 
 
 
@@ -153,6 +153,6 @@ class netlist_design(parameters):
 		ana_sis = ana_sis + "\nsaveOptions options save=allpub"  # type of analysis + saving the input and output current 
 		file_.write(ana_sis)
 
-		print("**Netlist, model path and simulation parameters written to \"{}\"**\n".format(file_name))
+		print("Netlist, model path and simulation parameters written to \"{}\"\n".format(file_name))
 		
 	
