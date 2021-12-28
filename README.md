@@ -1,1 +1,1 @@
-# xbar
+# HiWi project
