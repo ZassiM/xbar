@@ -60,10 +60,10 @@ class netlist_design(parameters):
 
 		
 		if(len(d_to_d_vardict) == 0):
-			print("No random variations!\n")
+			print("No random variations.\n")
 		else:
 			var_param += gauss.make_paramset(d_to_d_vardict) 
-			print("Parameters updated.\n")
+			print("{} parameters are updated due to variation.\n".format(len(d_to_d_vardict)))
 		
 		#if no variation is set, we'll have "parameters "+static_param
 		#otherwise, we'll have "parameters Ndiscmin0 = 5 Ndiscmin1 = 2 Ndiscmin2 = 4 Ndiscmin3 = 6 ......"
@@ -126,7 +126,7 @@ class netlist_design(parameters):
 		output_data = variables + "\n" + "subckt " + ckt_name + " " # create subckt
 
 		# all combined into single string
-		print("Netlist generated.\n")
+		print("Netlist generated with {} instances.\n".format(self.rows * self.columns))
 		all_current += "XBAR.I2:AE"
 		return output_data + voltages_name +"\n" +instance + end_ckt + subckt_instance + voltage_source + "\n save " +all_current + "\n" 
 

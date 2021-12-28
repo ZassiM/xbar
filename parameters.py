@@ -17,6 +17,7 @@ class parameters(object):  # base class for parameters
 			self.device_model= "JART_VCM_1b_det"
 			# TO-DO
 			print ("please slelect the device = var")
+
 		#self.set_default_params()
 
 	def set_device_parameters(self, param= {}, model_name="var"):
@@ -75,9 +76,9 @@ class parameters(object):  # base class for parameters
 
 		"""
 		self.set_device_parameters()
+		self.set_cross_bar_params()
 		self.set_input_voltages()
 		self.set_simulation_params()
-		#self.set_cross_bar_params()
 
 	def set_input_voltages(self, volt_r = [], volt_c = []):
 		"""
@@ -100,15 +101,27 @@ class parameters(object):  # base class for parameters
 		self.rise_time_r, self.rise_time_c = [], []
 		self.fall_time_r, self.fall_time_c = [], []
 
+		def_vol = ["pulse", 0, 0, "0", "0", "0", "0"]
+
 		if self.rows < len(volt_r):
-			print("There are {} voltage pulses but only {} rows, {} voltage pulses are ignored".format(len(volt_r), self.rows, len(volt_r)-self.rows))
+			print("There are {} voltage pulses but only {} rows -> {} voltage pulses are ignored\n".format(len(volt_r), self.rows, len(volt_r)-self.rows))
 			while self.rows != len(volt_r):
 				volt_r.pop()
 		
 		if self.columns < len(volt_c):
-			print("There are {} voltage pulses but only {} columns, {} voltage pulses are ignored".format(len(volt_c), self.columns, len(volt_c)-self.columns))
+			print("There are {} voltage pulses but only {} columns -> {} voltage pulses are ignored\n".format(len(volt_c), self.columns, len(volt_c)-self.columns))
 			while self.columns != len(volt_c):
 				volt_c.pop()
+		
+		if self.rows > len(volt_r):
+			print("There are {} rows, but only {} voltage pulses are defined -> {} null voltages are added\n".format(self.rows, len(volt_r), self.rows - len(volt_r)))
+			while self.rows != len(volt_r):
+				volt_r.append(def_vol)
+		
+		if self.columns > len(volt_c):
+			print("There are {} columns, but only {} voltage pulses are defined -> {} null voltages are added\n".format(self.columns, len(volt_c), self.columns - len(volt_c)))
+			while self.columns != len(volt_c):
+				volt_c.append(def_vol)
 
 		for v in volt_r:
 			self.input_type_r.append(v[0])
@@ -128,6 +141,8 @@ class parameters(object):  # base class for parameters
 			self.rise_time_c.append(v[5])
 			self.fall_time_c.append(v[6])
 		
+		print("Voltage pulses correctly added.\n")
+		
 		#if volts>rows: take first n_rows of voltages
 		#if volts<rows: fill the rows-volts with 0 volts
 		
@@ -137,7 +152,7 @@ class parameters(object):  # base class for parameters
 		
 		#print("Voltage pulses generated.\n")
 
-	def set_simulation_params(self, type_, stop_time, maxstep):
+	def set_simulation_params(self, type_ = "tran", stop_time = "5u", maxstep = "1u"):
 
 		"""
 			intilize all the parameters required for spectre simulation
@@ -153,9 +168,10 @@ class parameters(object):  # base class for parameters
 		self.simulation_type = type_
 		self.simulation_maxstep = maxstep
 
-		print("Stop time: {}, Max step: {} are set for the simulation.\n".format(self.simulation_stop_time,self.simulation_maxstep))
 
-	def set_cross_bar_params(self, rows, columns):
+		print("Stop time: {}s, Max step: {}s.\n".format(self.simulation_stop_time,self.simulation_maxstep))
+
+	def set_cross_bar_params(self, rows = 5, columns = 5):
 
 		"""
 		initilize the cross bar based on the number of input

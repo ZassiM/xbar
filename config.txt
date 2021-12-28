@@ -1,8 +1,8 @@
 # xbar sizes
-2,2
+6,6
 
 # var bools
-1,1,1,1
+0,0,0,0
 
 # sim params
 tran,5u,1u
@@ -10,13 +10,14 @@ tran,5u,1u
 # row voltages 
 pulse,-2,1.2,200n,50n,25n,25n
 pulse,-1,1.5,145n,60n,35n,15n
-pulse,-1,1.5,145n,60n,35n,15n
-pulse,-1,1.5,145n,60n,35n,15n
-pulse,-1,1.5,145n,60n,35n,15n
-pulse,-1,1.5,145n,60n,35n,15n
+pulse,-2,1.3,146n,59n,34n,26n
+pulse,-3,1.7,147n,58n,33n,37n
+pulse,-4,1.9,148n,57n,32n,48n
+pulse,-5,1.0,149n,56n,30n,59n
 # column voltages 
 pulse,-3,1.7,120n,47n,12n,30n
 pulse,-0.4,1.5,70n,14n,47n,5n
-pulse,-1,1.5,145n,60n,35n,15n
-pulse,-1,1.5,145n,60n,35n,15n
-pulse,-1,1.5,145n,60n,35n,15n
+pulse,-2,1.5,142n,63n,25n,25n
+pulse,-7,1.7,127n,64n,85n,34n
+pulse,-3,1.2,125n,67n,95n,42n
+pulse,-1,3.0,149n,56n,30n,59n

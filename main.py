@@ -19,7 +19,6 @@ mean_sigma = { "Ndiscmin": (8e-03, 2e-3), "Ndiscmax": (20, 1), "lnew": (0.4, 0.0
 # static parameters which are required for internal calculation
 static_param_sim = " eps = 17 epsphib = 5.5 Ndiscmin=0.008" 
 
-
 # static parameters value. 
 static_param = {"eps": 17,"epsphib":5.5,"phibn0":0.18, "phin":0.1,"un":4e-06,
 		 "Ndiscmax":20,"Ndiscmin": 0.008,"Ninit": "Ndiscmin","Nplug": 20,
@@ -56,43 +55,68 @@ static_param = {"eps": 17,"epsphib":5.5,"phibn0":0.18, "phin":0.1,"un":4e-06,
 # parameter real epsphib_eff=epsphib*`P_EPS0; 					// hafnium oxide permittivity related to image force barrier lowering
 
 read = 0
-volt_r = []
-volt_c = []
-
-with open('config.txt', 'r') as csv_file:
-    config = csv.reader(csv_file)
-    
-    for c in config:
-        if(not c or c[0][0]=='#'):  #skip empty line or comment
-            if read == 4 or read == 5:
-                read += 1
-            continue
-
-        elif read != 4 and read != 5:
-            read += 1
-
-        if read == 1:
-            rows, columns = (int(c[0]), int(c[1]))
-
-        if read == 2:
-            nmin_b, nmax_b, ldet_b, rdet_b = (int(c[0]), int(c[1]), int(c[2]), int(c[3]))
-
-        if read == 3:
-            sim_type, stop_time, max_step = (c[0]), c[1], (c[2])
-        
-        if read == 4:
-            volt_r.append(c)        
-
-        if read == 5:
-            volt_c.append(c)
+volt_r, volt_c = [], []
 
 
-#set the size of crossbar rows and columns 
-cross_bar = ckt.set_cross_bar_params(rows, columns) #set the size of crossbar 
+csv_file = open('config.txt', 'r')
+config = csv.reader(csv_file)
+
+for c in config:
+	if(not c or c[0][0]=='#'):  #skip empty line or comment
+		if read == 4 or read == 5:
+			read += 1
+		continue
+
+	elif read != 4 and read != 5:
+		read += 1
+
+	if read == 1:
+		try:
+			rows, columns = (int(c[0]), int(c[1]))
+			#set the size of crossbar rows and columns 
+			cross_bar = ckt.set_cross_bar_params(rows, columns)
+		except:
+			print("Rows and columns are set to default!\n")
+			cross_bar = ckt.set_cross_bar_params()
+		
+	
+
+	if read == 2:
+		try:
+			nmin_b, nmax_b, ldet_b, rdet_b = (int(c[0]), int(c[1]), int(c[2]), int(c[3]))
+			bools_var = ckt.set_variablity(Nmin = nmin_b, Nmax = nmax_b, ldet = ldet_b, rdet = rdet_b)
+
+		except:
+			print("Variability parameters are disabled by default!\n")
+			bools_var = ckt.set_variablity()
+		
+		var_param = ckt.update_param(static_param_sim, mean_sigma, bools_var) 
+
+	if read == 3:
+		try:
+			sim_type, stop_time, max_step = (c[0]), c[1], (c[2])
+			#Tune the simulation parameters  - duration of simulation and step you want to take
+			ckt.set_simulation_params(sim_type, stop_time, max_step) # set simulation type and stoptime
+		except:
+			print("Simulation parameters are set to default!\n")
+
+	if read == 4:
+		volt_r.append(c)     
+
+	if read == 5:
+		try:
+			volt_c.append(c)
+		except:
+			print("Voltage pulse set to default")   
+	
+csv_file.close()
 
 
-#Tune the simulation parameters  - duration of simulation and step you want to take
-ckt.set_simulation_params(sim_type, stop_time, max_step) # set simulation type and stoptime
+# check for variation and create a string for the first part of the netlist: if there are variations,
+# it will contain the variation parameters for each memristor in the xbar to be used then to 
+# define the instances of each memristor, plus the static parameters used by the simulator (eps epsphib and Ndiscmin)
+
+
 
 # print("Set variability for each of 4 parameters: (0->False, 1->True)")
 # variab = str(input())
@@ -102,22 +126,13 @@ ckt.set_simulation_params(sim_type, stop_time, max_step) # set simulation type a
 #bools_var = ckt.set_variablity(Nmin=False, Nmax=False, ldet=False, rdet=False) 
 # Creates dictionary of the form {"Ndiscmin": Nmin, "Ndiscmax": Nmax, "rnew": rdet,"lnew": ldet
 # It is used by the update_param function to generate var_param to put on the top of the netlist, and also to 
-bools_var = ckt.set_variablity(Nmin = nmin_b, Nmax = nmax_b, ldet = ldet_b, rdet = rdet_b) 
 
-
-# set type of input to crossbar and control the other variables
-#ckt.set_input_voltages(type_="pulse", vol0=-2, vol1=1.2, time_period="200n", pulse_width="50n", rise_time = "25n", fall_time="25n")
 ckt.set_input_voltages(volt_r, volt_c)
-#ckt.set_input_voltages(type_="pulse", vol0, vol1, time_period, pulse_width, rise_time, fall_time)
 
-# check for variation and create a string for the first part of the netlist: if there are variations,
-# it will contain the variation parameters for each memristor in the xbar to be used then to 
-# define the instances of each memristor, plus the static parameters used by the simulator (eps epsphib and Ndiscmin)
-var_param = ckt.update_param(static_param_sim, mean_sigma, bools_var)
 
 # create spectre netlist using the parameters set before and the static and variab parameters
-netlist = ckt.design_ckt(variables = var_param,static_param = static_param) 
+netlist = ckt.design_ckt(var_param, static_param) 
 
 # write into file, name of file can be given as argument - (file_name = "auto_generated.scs")
-ckt.write_into_file(file_name = out_file_name, to_be_written= netlist)  
+ckt.write_into_file(out_file_name, netlist)  
 
