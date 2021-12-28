@@ -13,7 +13,6 @@ pulse,-1.1,1.5,145n,60n,35n,15n
 pulse,-1.3,1.3,146n,59n,34n,26n
 pulse,-0.9,1.6,147n,58n,33n,37n
 pulse,-1.2,1.9,148n,57n,32n,48n
-
 # column voltages 
 pulse,0,0,200n,50n,25n,25n
 pulse,0,0,200n,50n,25n,25n

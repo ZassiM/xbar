@@ -9,7 +9,7 @@ This is the main function which defined the flow of code by calling different cl
 """
 print()
 
-out_file_name = "computing.scs" # file name of netlist
+out_file_name = "netlist.scs" # file name of netlist
 ckt = netlist_design()  # object of the netlist class
 
 # mean and sigma of each variablity parameter
@@ -78,7 +78,6 @@ for c in config: # read line per line from the csv file
 	if params_read == 5:	# columns voltage pulses
 		volt_c.append(c)
 
-	
 csv_file.close()
 
 # set input voltages using the list read by the file
