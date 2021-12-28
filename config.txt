@@ -10,8 +10,6 @@ tran,5u,1u
 # row voltages 
 pulse,-2,1.2,200n,50n,25n,25n
 pulse,-1,1.5,145n,60n,35n,15n
-pulse,-0.5,2,130n,75n,50n,20n
-pulse,-1.3,0.7,170n,40n,26n,34n
 # column voltages 
-pulse,-3,1.2,200n,50n,25n,25n
-pulse,-0.4,1.5,145n,60n,35n,15n
+pulse,-3,1.2,120n,47n,12n,30n
+pulse,-0.4,1.5,70n,14n,47n,5n

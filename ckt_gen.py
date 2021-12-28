@@ -29,12 +29,12 @@ class netlist_design(parameters):
 		voltage_source = ""
 		for i in range(self.rows):
 			voltages_name += "r{} ".format(i)
-			voltage_source += vpulse.format(str(num_volt_source),"r{} ".format(i),0, self.input_type, self.volt_0,self.volt_1, self.time_period, self.pulse_width, self.rise_time,self.fall_time)
+			voltage_source += vpulse.format(str(num_volt_source),"r{} ".format(i),0, self.input_type_r[i], self.volt_0_r[i],self.volt_1_r[i], self.time_period_r[i], self.pulse_width_r[i], self.rise_time_r[i],self.fall_time_r[i])
 			num_volt_source += 1
 		for j in range(self.columns):
 			voltages_name += "c{} ".format(j)
 			#no voltages applied to colums
-			voltage_source += vpulse.format(str(num_volt_source),"c{} ".format(j),0, self.input_type, 0 ,0, self.time_period, self.pulse_width, self.rise_time,self.fall_time)
+			voltage_source += vpulse.format(str(num_volt_source),"c{} ".format(j),0, self.input_type_c[j], self.volt_0_c[j],self.volt_1_c[j], self.time_period_c[j], self.pulse_width_c[j], self.rise_time_c[j],self.fall_time_c[j])
 			num_volt_source += 1
 		return voltages_name,voltage_source
 
@@ -55,7 +55,7 @@ class netlist_design(parameters):
 				ex with 2x2 xbar: d_to_d_vardict { "Ndiscmin": [5,2,4,6], "Ndiscmax": (4,1,2,8), "lnew": (3,2,2,4), "rnew": (45,56,4,2)}
 				"""
 				d_to_d_vardict[variation] = gauss_dist(mean_sigma_param[variation]).create_distribution((self.rows,self.columns))
-				
+
 				#gauss_dist(d_to_d[variation]).plot_variation(d_to_d_vardict[variation], bin_=30, line=True) # plot the parameters to check if gauss or not.
 
 		

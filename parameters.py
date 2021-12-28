@@ -79,7 +79,7 @@ class parameters(object):  # base class for parameters
 		self.set_simulation_params()
 		#self.set_cross_bar_params()
 
-	def set_input_voltages(self, type_="pulse", vol0=0, vol1=2, time_period="2u", pulse_width="1u", rise_time = "25n", fall_time="25n"):
+	def set_input_voltages(self, volt_r = [], volt_c = []):
 		"""
 		set the input voltages to the cross bar
 
@@ -92,14 +92,40 @@ class parameters(object):  # base class for parameters
 		output: Initialize all the variables for voltage sequence 
 
 		"""
-		self.input_type = type_
-		self.volt_0 = vol0
-		self.volt_1 = vol1
-		self.time_period = time_period
-		self.pulse_width = pulse_width
-		self.rise_time = rise_time
-		self.fall_time = fall_time
+		self.input_type_r = []
+		self.input_type_c = []
+		self.volt_0_r = []
+		self.volt_0_c = []
+		self.volt_1_r = []
+		self.volt_1_c = []
+		self.time_period_r = []
+		self.time_period_c = []
+		self.pulse_width_r = []
+		self.pulse_width_c = []
+		self.rise_time_r = []
+		self.rise_time_c = []
+		self.fall_time_r = []
+		self.fall_time_c = []
 
+		for v in volt_r:
+			self.input_type_r.append(v[0])
+			self.volt_0_r.append(v[1])
+			self.volt_1_r.append(v[2])
+			self.time_period_r.append(v[3])
+			self.pulse_width_r.append(v[4])
+			self.rise_time_r.append(v[5])
+			self.fall_time_r.append(v[6])
+
+		for v in volt_c:
+			self.input_type_c.append(v[0])
+			self.volt_0_c.append(v[1])
+			self.volt_1_c.append(v[2])
+			self.time_period_c.append(v[3])
+			self.pulse_width_c.append(v[4])
+			self.rise_time_c.append(v[5])
+			self.fall_time_c.append(v[6])
+
+		
 		#print("Voltage pulses generated.\n")
 
 	def set_simulation_params(self, type_, stop_time, maxstep):
