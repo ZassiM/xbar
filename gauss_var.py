@@ -9,11 +9,9 @@ from parameters import parameters
 class gauss_dist(parameters):
 	"""docstring for gauss_dist"""
 	def __init__(self, var = (None,None)):   # class will be initilized for each variable withe different mu and sigma
-		# super(gauss_dist, self).__init__()
 		parameters.__init__(self) # child class 
 
 		if var[0]==None or var[1]==None:
-			#print ("value of mu and sigma is not defined")
 			self.mu = float
 			self.sigma =float
 		else:
@@ -49,20 +47,11 @@ class gauss_dist(parameters):
 		"""
 		variable_name = ""
 		if (len(in_dict)==0):  # checkpoint
-			#print ("paramters list is not defined")
 			pass
 		else:
-			#in_dict = { "Ndiscmin": [5,2,4,6], "Ndiscmax": (4,1,2,8), "lnew": (3,2,2,4), "rnew": (45,56,4,2)}
 			for var_param in in_dict:
-				#var_param = Ndiscmin
 				for i in range(len(in_dict[var_param])): 
-					#i in range(4)
 					variable_name += var_param + "{}".format(i) + " = " + str(in_dict[var_param][i]) + " " #append each variable in list
-					#variable_name = Ndiscmin0 = 5 Ndiscmin1 = 2 Ndiscmin2 = 4 Ndiscmin3 = 6
-					#...ecc with Ndiscman lnew rnew..
-				
-					# variable_name + " = " + str(in_dict[var_param][i])
-
 		return variable_name
 
 

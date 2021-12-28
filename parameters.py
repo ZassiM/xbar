@@ -5,7 +5,6 @@ import copy
 class parameters(object):  # base class for parameters
 	"""docstring for parameters"""
 	def __init__(self, device="var", simulation = "spectre"): #two type of device we have var (variablity) and det (deterministic)
-		# gauss_dist.__init__(self)
 
 		if simulation !="spectre":
 			print("simulation needs to be set = spectre")
@@ -66,8 +65,6 @@ class parameters(object):  # base class for parameters
 			rnew_var = "rnew{}".format(iteration)
 			variablity_dict["rnew"] = rnew_var
 
-		#ex with iteration=0-> variability_dict = {"Ndiscmin" : "Ndiscmin0", "Ndiscmax" : "Ndiscmax0", "lnew" : "lnew0", "rnew0" : "rnew0"}
-		#if no variations -> variability_dict = {"Ninit" : , "Ndiscmin" }
 		return variablity_dict
 
 	def set_default_params(self):
@@ -142,15 +139,6 @@ class parameters(object):  # base class for parameters
 			self.fall_time_c.append(v[6])
 		
 		print("Voltage pulses correctly added.\n")
-		
-		#if volts>rows: take first n_rows of voltages
-		#if volts<rows: fill the rows-volts with 0 volts
-		
-
-
-
-		
-		#print("Voltage pulses generated.\n")
 
 	def set_simulation_params(self, type_ = "tran", stop_time = "5u", maxstep = "1u"):
 
@@ -187,9 +175,7 @@ class parameters(object):  # base class for parameters
 		"""
 		check the variablity parameters and set paraticular varilble and append it to dict
 		
-
 		"""
-
 		self.vary_nmin = Nmin
 		self.vary_nmax = Nmax
 		self.vary_rdet = rdet

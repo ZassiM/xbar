@@ -47,16 +47,7 @@ class netlist_design(parameters):
 		# check for variation and create gaussin dist of each parameters according to d_to_d dict parameters
 		for variation in bools_var:
 			if bools_var[variation]:
-				#if param variations are set to True create new parameters with mean and sigma taken from d_to_d array 
-				""" example
-				if bools_var["Ndiscmin"] == True:
-				d_to_d_vardict["Ndiscmin"] = gauss_dist((8e-03, 2e-3)).create_distribution(rown,columns)
-				d_to_d_vardict contains R*C gaussian results for every var parameter which is set to True
-				ex with 2x2 xbar: d_to_d_vardict { "Ndiscmin": [5,2,4,6], "Ndiscmax": (4,1,2,8), "lnew": (3,2,2,4), "rnew": (45,56,4,2)}
-				"""
 				d_to_d_vardict[variation] = gauss_dist(mean_sigma_param[variation]).create_distribution((self.rows,self.columns))
-
-				#gauss_dist(d_to_d[variation]).plot_variation(d_to_d_vardict[variation], bin_=30, line=True) # plot the parameters to check if gauss or not.
 
 		
 		if(len(d_to_d_vardict) == 0):
@@ -64,9 +55,7 @@ class netlist_design(parameters):
 		else:
 			var_param += gauss.make_paramset(d_to_d_vardict) 
 			print("{} parameters are updated due to variation.\n".format(len(d_to_d_vardict)))
-		
-		#if no variation is set, we'll have "parameters "+static_param
-		#otherwise, we'll have "parameters Ndiscmin0 = 5 Ndiscmin1 = 2 Ndiscmin2 = 4 Ndiscmin3 = 6 ......"
+	
 		var_param += static_param 
 		return var_param
 
@@ -93,27 +82,16 @@ class netlist_design(parameters):
 			for cols in range(self.columns):
 				iteration = str(cols+(rows*self.columns)) # total number of iteration - required for creating number of devices
 
-				#print ("iteration = ", iteration )
-
 				varing_dict_ = self.variablity_param(iteration) #update dict for variation in each device 
-				#varing_dict = {"Ndiscmin" : "Ndiscmin0", "Ndiscmax" : "Ndiscmax0", "lnew" : "lnew0", "rnew0" : "rnew0"}
-				#if no variations -> variability_dict = {"Ninit" : , "Ndiscmin" }
 
-				# static_param = {"eps": 17,"epsphib":5.5,"phibn0":0.18, "phin":0.1,"un":4e-06,
-				# "Ndiscmax":20,"Ndiscmin": 0.008,"Ninit": "Ndiscmin","Nplug": 20,
-				# "a": 2.5e-10,"nyo": 2e+13, "dWa": 1.35, "Rth0": 1.572e+07,
-				# "rdet": 4.5e-08, "rnew": 4.5e-08, 'lcell': 3, 'ldet': 0.4,
-				# 'lnew': 0.4, "Rtheff_scaling": 0.27, "RTiOx": 650, "R0": 719.244,
-				# 'Rthline': 90471.5, 'alphaline': 0.00392, "eps_eff": "(eps)*(8.85419e-12)",
-				# 'epsphib_eff': "(epsphib)*(8.85419e-12)"}
-
-				#the static_param dict is modified only on the parameters which have the bool var set, and the others remain the same
+				# the static_param dict is modified only on the parameters which have the bool var set, and the others remain the same
 				for value in varing_dict_: # update the parameters for each variation
 					static_param[value] = varing_dict_[value]
-					#static_param["Ndiscmin"] = "Ndiscmin0"
+					
 
 				# generate string for each instance with list of parameters from static_param
 				device_parameter_including_variablity = self.set_device_parameters(param=static_param)
+				
 				# create instance of device
 				instance += "I"+iteration +" (r{} c{}) ".format(rows,cols) + self.device_model + " " + device_parameter_including_variablity + "\n"
 
