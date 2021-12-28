@@ -92,20 +92,23 @@ class parameters(object):  # base class for parameters
 		output: Initialize all the variables for voltage sequence 
 
 		"""
-		self.input_type_r = []
-		self.input_type_c = []
-		self.volt_0_r = []
-		self.volt_0_c = []
-		self.volt_1_r = []
-		self.volt_1_c = []
-		self.time_period_r = []
-		self.time_period_c = []
-		self.pulse_width_r = []
-		self.pulse_width_c = []
-		self.rise_time_r = []
-		self.rise_time_c = []
-		self.fall_time_r = []
-		self.fall_time_c = []
+		self.input_type_r, self.input_type_c = [], []
+		self.volt_0_r, self.volt_0_c = [], []
+		self.volt_1_r, self.volt_1_c = [], []
+		self.time_period_r, self.time_period_c = [], []
+		self.pulse_width_r, self.pulse_width_c = [], []
+		self.rise_time_r, self.rise_time_c = [], []
+		self.fall_time_r, self.fall_time_c = [], []
+
+		if self.rows < len(volt_r):
+			print("There are {} voltage pulses but only {} rows, {} voltage pulses are ignored".format(len(volt_r), self.rows, len(volt_r)-self.rows))
+			while self.rows != len(volt_r):
+				volt_r.pop()
+		
+		if self.columns < len(volt_c):
+			print("There are {} voltage pulses but only {} columns, {} voltage pulses are ignored".format(len(volt_c), self.columns, len(volt_c)-self.columns))
+			while self.columns != len(volt_c):
+				volt_c.pop()
 
 		for v in volt_r:
 			self.input_type_r.append(v[0])
@@ -124,6 +127,12 @@ class parameters(object):  # base class for parameters
 			self.pulse_width_c.append(v[4])
 			self.rise_time_c.append(v[5])
 			self.fall_time_c.append(v[6])
+		
+		#if volts>rows: take first n_rows of voltages
+		#if volts<rows: fill the rows-volts with 0 volts
+		
+
+
 
 		
 		#print("Voltage pulses generated.\n")
