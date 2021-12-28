@@ -1,0 +1,230 @@
+// JART VCM1 compact model
+// This model has been published in the following papers
+// [1] F. Cueppers, S. Menzel, C. Bengel, A. Hardtdegen, M. von Witzleben, U. Boettger, R. Waser and S. Hoffmann-Eifert
+// "Exploiting the switching dynamics of HfO2-based ReRAM devices for reliable analog memristive behavior"
+// APL Materials 7 091105 (2019) 
+// doi:10.1063/1.5108654
+// and [2] C. Bengel, A. Siemon, F. Cueppers, Susanne Hofmann-Eifert, Alexander Hardtdegen, Moritz von Witzleben, Lena Hellmich, Rainer Waser and Stephan Menzel
+// "Variability-Aware" Modeling of Filamentary Oxide-Based Bipolar Resistive Switching Cells Using SPICE Level Compact Models"  
+// IEEE Transactions on Circuits and Systems-I Regular Papers, VOL. 67, NO. 12, December 2020
+// doi:10.1109/TCSI.2020.3018502
+// In this model, the equations of [2] are referenced and the nomenclature of [2] is used
+// If this model is used for publications it should be referenced in the form:
+// The simulations were performed using the JART VCM v1 model [2]. The simulation parameters are given in table xx.
+
+// Last updated on 15.02.2021
+// For inquires please contact jart@iwe.rwth-aachen.de
+`include "constants.vams"
+`include "disciplines.vams"
+
+module JART_VCM_1b_VAR( AE, OE );
+
+	inout AE,OE;
+	electrical N,slopeN,AE,be,OE,schottkytunnel,resistorR0,ion,trackNdiscmax,trackNdiscmin,trackrvar,trackrold,trackrnew,tracklvar,tracklold,tracklnew;
+	ground gnd;
+
+	//Electric branches.
+	branch (AE,schottkytunnel) schottky;
+	branch (schottkytunnel,OE) discplugserial;
+
+//  physical constants do not change!
+	localparam Arichardson  = 6.01e5;								// Richardson's constant [A/m^2K^2]  
+	localparam mdiel		  = 9.10938e-31;			  				// electron rest mass [kg]
+	localparam zvo		  = 2;									// oxygen vacancy charge number
+	localparam T0 	= 293;										// ambient temperature [K] 
+
+//  fitting parameters
+
+	parameter real eps	= 17 from [10:25]; 						// static hafnium oxide permittivity 
+	parameter real epsphib	  =  5.5;							// hafnium oxide permittivity related to image force barrier lowering
+	parameter real phibn0 	= 0.18 from [0.1:0.5];				// nominal schottky barrier height [eV]
+	parameter real phin  	= 0.1	from [0.1:0.3];					// energy level difference between the Fermi level in the oxide and the oxide conduction band edge [eV]
+	parameter real un	= 4e-6	from [1e-6:1e-5];				// electron mobility [m^2/Vs]
+	parameter real Ndiscmax	= 20	 from [0.001:1100];				// maximum oxygen vacancy concentration in the disc[10^26/m^3]
+	parameter real Ndiscmin	= 0.008	 from [0.0001:100];			// minimum oxygen vacancy concentration in the disc [10^26/m^3]
+	parameter real Ninit =0.008	from [0.0001:1000];				// initial oxygen vacancy concentration in the disc [10^26/m^3]
+	parameter real Nplug = 20 from [0.001:100];					// oxygen vacancy concentration in the plug [10^26/m^3]
+	parameter real a	= 0.25e-9 from [0.1e-9:1e-9];					// ion hopping distance [m]
+	parameter real nyo	= 2e13 from [1e10:1e14];					// attemp frequenzy [Hz]
+	parameter real dWa	= 1.35 from [0.8:1.5];					// activation energy [eV]
+	parameter real Rth0  = 15.72e6 from [1e6:20e6];				// thermal resistance of the Hafnium Oxide [K/W]
+	parameter real rdet = 45e-9 	from [5e-9:100e-9];				// radius of the filament [m]
+	parameter real rnew = 45e-9 from [5e-9:100e-9];				// radius of the filament [m]
+	parameter real lcell	= 3	from [2:5];							// length of disc and plug region [nm]
+	parameter real ldet 	= 0.4 	from [0.1:5]; 					// length of the disc region [nm]
+	parameter real lnew 	= 0.4 	from [0.1:5]; 					// length of the disc region [nm]
+	parameter real Rtheff_scaling = 0.27 from [0.1:1];				// scaling factor for RESET 
+	parameter real RTiOx = 650 from [0:5000]; 						// series resistance of the TiOx layer[Ohm]
+	parameter real R0 = 719.2437;									//  Resistance at T0 [Ohm}
+	parameter real Rthline = 90471.47;							// thermal conductivity of the Platinum and Titanium [W/mK]
+	parameter real alphaline = 3.92e-3;							// temperature coefficient [1/K]
+
+	real A,Flim,phibn,Rtheff,psi,W00,W0,epsprime,Ischottkytunnel,cvo,Treal,Nreal,Nchange,E_ion,dWamin,dWamax,gamma,Rdisc,Rplug,Rseries,rvar,lvar,lold,Nold,rold;
+
+	real Ninitreal;
+	integer trig;
+	
+	parameter real eps_eff=eps*`P_EPS0; // static hafnium oxide permittivity 
+	parameter real epsphib_eff=epsphib*`P_EPS0; // hafnium oxide permittivity related to image force barrier lowering
+
+	//Thermal branch for temperature calculation
+	thermal t;
+	branch (t) rth_branch;
+	branch (t) ith_branch;
+
+	analog 
+		begin
+
+@(initial_step)
+begin
+	Ninitreal=Ninit;
+	trig=1;
+	rvar=rnew;
+	lvar=lnew;
+	lold=lnew;
+	rold=rnew;
+	Nold=Ninit;
+end
+
+////////////////////////////////////////////////////////
+// variability model    							   //
+////////////////////////////////////////////////////////
+@(cross(V(OE,AE) - 1.5e-5, +1))
+begin		
+	rold=rvar; 
+	lold=lvar;
+	Nold=Nreal;
+	trig=1;
+end		
+
+@(cross(V(AE,OE) - 1.5e-5, +1)) 
+begin		
+	rold=rvar;	
+	lold=lvar;
+	Nold=Nreal;
+	trig=1;
+end		
+
+if ((V(AE,OE)<-2e-5)&(trig==1)) //SET at negative voltage 
+	begin
+		rvar=rold+(rnew-rold)*((Nreal-Nold)/(Ndiscmax-Nold)); // Equation 21
+		lvar=lold+(lnew-lold)*((Nreal-Nold)/(Ndiscmax-Nold)); // Equation 22
+
+	end
+else if ((V(AE,OE)>2e-5)&(trig==1))	//RESET at positive voltage
+	begin
+		rvar=rold+(rnew-rold)*((Nold-Nreal)/(Nold-Ndiscmin)); // Equation 23
+		lvar=lold+(lnew-lold)*((Nold-Nreal)/(Nold-Ndiscmin)); // Equation 24
+	end
+else
+	begin
+	end
+
+// tracking variability model variables
+V(trackNdiscmax,gnd)<+Ndiscmax;
+V(trackNdiscmin,gnd)<+Ndiscmin;
+
+V(trackrvar,gnd)<+rvar;
+V(trackrold,gnd)<+rold;
+V(trackrnew,gnd)<+rnew;
+
+V(tracklvar,gnd)<+lvar;
+V(tracklold,gnd)<+lold;
+V(tracklnew,gnd)<+lnew;
+
+////////////////////////////////////////////////////////
+// auxiliary variables							   //
+////////////////////////////////////////////////////////
+A =`M_PI*pow(rvar,2); // cross sectional filament area
+
+
+// force small time steps during abrupt switching
+V(slopeN,gnd)<+ddt(V(N,gnd))/V(N,gnd)*1e-15;
+if ((abs(V(slopeN,gnd))>1e-8))
+	begin
+		$bound_step(5e-12);
+	end
+
+
+////////////////////////////////////////////////////////
+// equivalent circuit diagramm 					   //
+////////////////////////////////////////////////////////
+
+// local temperature in the filament
+Pwr(ith_branch) <+ -(V(schottky)+V(discplugserial)*(Rdisc+Rplug)/(Rdisc+Rplug+Rseries))*I(schottky);		// Equation 5	
+Pwr(rth_branch) <+ Temp(rth_branch)/Rtheff;
+Treal = T0 + Temp(rth_branch);	// Equation 5	
+
+//Schottkydiode,tunnel		
+if (V(schottky)<phibn0-phin)
+	begin
+		psi=phibn0-phin-V(schottky);
+		phibn=phibn0-sqrt(sqrt(pow(`P_Q,3)*zvo*Nreal*1e26*psi/(8*pow(`M_PI,2)*(pow(epsphib_eff,3)))));	// Equation 19							
+		if (phibn<0)
+			begin	
+				phibn=0;
+			end
+	end			
+else
+	begin		
+		psi=0;
+		phibn=phibn0;	
+	end		
+	
+if (V(schottky)<0) //TFE Schottky SET direction
+	begin
+		W00=(`P_Q*`P_H/(4*`M_PI))*sqrt(zvo*Nreal*1e26/(mdiel*eps_eff));  // Equation 16
+		W0=W00/tanh(W00/(`P_K*Treal));	// Equation 17
+		epsprime=W00/(W00/(`P_K*Treal)-tanh(W00/(`P_K*Treal)));  // Equation 18
+		Ischottkytunnel=-A*Arichardson*Treal/`P_K*sqrt(`M_PI*W00*`P_Q*(abs(V(schottky))+phibn/pow(cosh(W00/(`P_K*Treal)),2)))*exp(-`P_Q*phibn/W0)*(exp(`P_Q*abs(V(schottky))/epsprime)-1);  // Equation 14
+	end
+else		//Schottkydiode TE 	RESET direction
+	begin	
+		Ischottkytunnel= A*Arichardson*pow(Treal,2)*exp(-phibn*`P_Q/(`P_K*Treal))*(exp(`P_Q/(`P_K*Treal)*V(schottky))-1); // Equation 15
+	end
+I(schottky) <+ Ischottkytunnel;
+
+Rdisc=lvar*1e-9/(Nreal*1e26*zvo*`P_Q*un*A);	// Equation 13
+Rplug=((lcell-lvar)*1e-9/(Nplug*1e26*zvo*`P_Q*un*A));	// Equation 13
+Rseries=RTiOx+R0*(1+R0*alphaline*pow(I(discplugserial),2)*Rthline);	// Equation 12
+
+V(discplugserial)<+(Rdisc+Rplug+Rseries)*I(discplugserial);			
+
+////////////////////////////////////////////////////////
+// Solve ODE 									   //
+////////////////////////////////////////////////////////
+
+//concentration calculation
+Nchange=idt(-trig/(A*lvar*1e-9*`P_Q*zvo)*V(ion,gnd)/1e26,0);	// Equation 1
+Nreal=Ninitreal + Nchange;	
+V(N,gnd)<+Nreal;
+
+//I_ion is realised through a voltage source here
+if (((Nreal<Ndiscmin)&(V(AE,OE)>0))|((Nreal>Ndiscmax)&(V(AE,OE)<0)))	// keep concentration Nreal in the borders of Ndiscmin and Ndiscmax
+	begin
+		V(ion,gnd)<+0;
+		trig=0;
+	end
+else
+	begin 
+		cvo = (Nplug+Nreal)/2*1e26; // Equation 3
+		if (V(AE,OE)>0)
+			begin
+				E_ion=(V(schottky)+V(discplugserial)*(Rdisc+Rplug)/(Rdisc+Rplug+Rseries))/(lcell*1e-9); // Equation 11 ERESET 
+				Rtheff = Rth0*pow(rdet/rvar,2)*Rtheff_scaling; // Equation 5 times scaling constant for RESET  
+				Flim=1-pow(Ndiscmin/Nreal,10);  // Equation 4
+			end
+		else
+			begin
+				E_ion=V(discplugserial)*Rdisc/(Rdisc+Rplug+Rseries)/(lvar*1e-9); // Equation 10 ESET
+				Rtheff = Rth0*pow(rdet/rvar,2);  // Equation 6
+				Flim=1-pow(Nreal/Ndiscmax,10);  // Equation 4	
+			end
+		gamma=zvo*`P_Q*E_ion*a/(`M_PI*dWa*`P_Q);	// Equation 9
+		dWamin=dWa*`P_Q*(sqrt(1-pow(gamma,2))-gamma*`M_PI/2+gamma*asin(gamma)); // Equation 7
+		dWamax=dWa*`P_Q*(sqrt(1-pow(gamma,2))+gamma*`M_PI/2+gamma*asin(gamma)); // Equation 8
+		V(ion,gnd)<+zvo*`P_Q*cvo*a*nyo*A*(exp(-dWamin/(`P_K*Treal))-exp(-dWamax/(`P_K*Treal)))*Flim; // Equation 2
+	end
+end		
+
+endmodule

@@ -1,0 +1,17 @@
+parameters Ndiscmin0 = 0.0064936178710110325 Ndiscmin1 = 0.0060664176308875845 Ndiscmin2 = 0.00816887042223378 Ndiscmin3 = 0.007369252923262064 Ndiscmax0 = 19.164254472889596 Ndiscmax1 = 20.63142017549839 Ndiscmax2 = 19.45845999694859 Ndiscmax3 = 19.989222180229234 rnew0 = 4.490965879636352e-08 rnew1 = 5.1907456899027915e-08 rnew2 = 4.202133061150793e-08 rnew3 = 4.951000402696169e-08 lnew0 = 0.4075489014356092 lnew1 = 0.437627041876889 lnew2 = 0.41245493984975334 lnew3 = 0.3824886035502414  eps = 17 epsphib = 5.5 Ndiscmin=0.008
+subckt my_ckt r0 r1 c0 c1 
+I0 (r0 c0) JART_VCM_1b_VAR eps = 17 epsphib = 5.5 phibn0 = 0.18 phin = 0.1 un = 4e-06 Ndiscmax = Ndiscmax0  Ndiscmin = Ndiscmin0  Ninit = Ndiscmin0  Nplug = 20 a = 2.5e-10 nyo = 20000000000000.0 dWa = 1.35 Rth0 = 15720000.0 rdet = 4.5e-08 rnew = rnew0 lcell = 3 ldet = 0.4 lnew = lnew0  Rtheff_scaling = 0.27 RTiOx = 650 R0 = 719.244 Rthline = 90471.5 alphaline = 0.00392 eps_eff = (eps)*(8.85419e-12) epsphib_eff = (epsphib)*(8.85419e-12) 
+I1 (r0 c1) JART_VCM_1b_VAR eps = 17 epsphib = 5.5 phibn0 = 0.18 phin = 0.1 un = 4e-06 Ndiscmax = Ndiscmax1  Ndiscmin = Ndiscmin1  Ninit = Ndiscmin1  Nplug = 20 a = 2.5e-10 nyo = 20000000000000.0 dWa = 1.35 Rth0 = 15720000.0 rdet = 4.5e-08 rnew = rnew1 lcell = 3 ldet = 0.4 lnew = lnew1  Rtheff_scaling = 0.27 RTiOx = 650 R0 = 719.244 Rthline = 90471.5 alphaline = 0.00392 eps_eff = (eps)*(8.85419e-12) epsphib_eff = (epsphib)*(8.85419e-12) 
+I2 (r1 c0) JART_VCM_1b_VAR eps = 17 epsphib = 5.5 phibn0 = 0.18 phin = 0.1 un = 4e-06 Ndiscmax = Ndiscmax2  Ndiscmin = Ndiscmin2  Ninit = Ndiscmin2  Nplug = 20 a = 2.5e-10 nyo = 20000000000000.0 dWa = 1.35 Rth0 = 15720000.0 rdet = 4.5e-08 rnew = rnew2 lcell = 3 ldet = 0.4 lnew = lnew2  Rtheff_scaling = 0.27 RTiOx = 650 R0 = 719.244 Rthline = 90471.5 alphaline = 0.00392 eps_eff = (eps)*(8.85419e-12) epsphib_eff = (epsphib)*(8.85419e-12) 
+I3 (r1 c1) JART_VCM_1b_VAR eps = 17 epsphib = 5.5 phibn0 = 0.18 phin = 0.1 un = 4e-06 Ndiscmax = Ndiscmax3  Ndiscmin = Ndiscmin3  Ninit = Ndiscmin3  Nplug = 20 a = 2.5e-10 nyo = 20000000000000.0 dWa = 1.35 Rth0 = 15720000.0 rdet = 4.5e-08 rnew = rnew3 lcell = 3 ldet = 0.4 lnew = lnew3  Rtheff_scaling = 0.27 RTiOx = 650 R0 = 719.244 Rthline = 90471.5 alphaline = 0.00392 eps_eff = (eps)*(8.85419e-12) epsphib_eff = (epsphib)*(8.85419e-12) 
+ends my_ckt
+CIRCUITO (r0 r1 c0 c1 ) my_ckt
+V0 (r0  0) vsource type=pulse val0=-2 val1=1.2 period=200n width=50n rise=25n fall=25n 
+V1 (r1  0) vsource type=pulse val0=-2 val1=1.2 period=200n width=50n rise=25n fall=25n 
+V2 (c0  0) vsource type=pulse val0=0 val1=0 period=200n width=50n rise=25n fall=25n 
+V3 (c1  0) vsource type=pulse val0=0 val1=0 period=200n width=50n rise=25n fall=25n 
+
+ save CIRCUITO.I0:OE CIRCUITO.I1:OE CIRCUITO.I2:OE CIRCUITO.I3:OE CIRCUITO.I2:AE
+ahdl_include "/net/home/zahr/Downloads/counterfeit/JART_VCM_1b_verilog-var.va"
+trans tran stop=5u errpreset=conservative maxstep =1u write="spectre.ic" 		writefinal="spectre.fc" annotate=status maxiters=5
+saveOptions options save=allpub
