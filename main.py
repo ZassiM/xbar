@@ -1,7 +1,4 @@
 from ckt_gen import netlist_design
-from gauss_var import gauss_dist
-from parameters import parameters
-import numpy as np
 import csv
 
 """
@@ -46,29 +43,28 @@ for c in config: # read line per line from the csv file
 	if params_read == 1:	# rows and columns params
 		try:
 			rows, columns = (int(c[0]), int(c[1]))
-			#set the size of crossbar rows and columns 
-			cross_bar = ckt.set_cross_bar_params(rows, columns) # set xbar size
+
 		except:
 			print("Rows and columns are set to default!\n")
-			cross_bar = ckt.set_cross_bar_params()
+
 		
 	if params_read == 2:	# variability bools
 		try:
 			nmin_b, nmax_b, ldet_b, rdet_b = (int(c[0]), int(c[1]), int(c[2]), int(c[3]))
-			bools_var = ckt.set_variablity(Nmin = nmin_b, Nmax = nmax_b, ldet = ldet_b, rdet = rdet_b)	# create dict with variability params bools
+				# create dict with variability params bools
 
 		except:
 			print("Variability parameters are disabled by default!\n")
-			bools_var = ckt.set_variablity()
+			
 		
 		# use the dict created before to generate a string containing the (eventual) updated parameters used for the memristor instances
-		var_param = ckt.update_param(static_param_sim, mean_sigma, bools_var)
+		
 
 	if params_read == 3:	# simulation parameters
 		try:
 			sim_type, stop_time, max_step = (c[0]), c[1], (c[2])
 			# tune the simulation parameters  - duration of simulation and step you want to take
-			ckt.set_simulation_params(sim_type, stop_time, max_step) # set simulation type, stoptime and max step
+
 		except:
 			print("Simulation parameters are set to default!\n")
 
@@ -83,6 +79,13 @@ csv_file.close()
 # set input voltages using the list read by the file
 ckt.set_input_voltages(volt_r, volt_c)
 
+cross_bar = ckt.set_cross_bar_params(rows, columns) # set xbar size
+
+bools_var = ckt.set_variablity(Nmin = nmin_b, Nmax = nmax_b, ldet = ldet_b, rdet = rdet_b)
+
+var_param = ckt.update_param(static_param_sim, mean_sigma, bools_var)
+
+ckt.set_simulation_params(sim_type, stop_time, max_step)
 # create spectre netlist using the parameters set before and the static and variab parameters
 netlist = ckt.design_ckt(var_param, static_param) 
 

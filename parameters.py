@@ -21,12 +21,9 @@ class parameters(object):  # base class for parameters
 
 	def set_device_parameters(self, param= {}, model_name="var"):
 		"""
-			Setting all the device parameters, this include all the static parameters and varibales.
+			Generates a string containing all the parameters for each memristor. It is used during the generation of the netlist
+			(design_ckt function) in appending the string for each instance
 
-			Input: Model name - Model could be deterministic or variablity model (det or var)
-					param - type dict -> requires parameters that need to set
-			Output: Set the path of devide model in local directory and link it.
-					return string after combining all the parameters into one.
 
 		"""
 
@@ -34,35 +31,30 @@ class parameters(object):  # base class for parameters
 		if model_name=="var":
 			for i in param:
 				self.device_parameters+= i + " = " + str(param[i]) + " "   #concatinate the string according to each parameter
-
-		else:
-			self.device_model= "JART_VCM_1b_det"
-			self.model_path = "/home/users/simranjeet/JART_variablity_test/JART_VCM_1b_veriloga-det.va"
+		
 		return self.device_parameters
 
 	def variablity_param(self, iteration):
 		"""
-			Create name of each variable and append into device instance
-			input: number of iteration that need to added -> added based on the global variablity parameter
-					iterate for each variablity if true then append
-			output: dict contaning all the variables names.
+			Returns a dictionary in case the variability bools are set for each memristor of the xbar (iteration passed as argument).
+			It is used during the generation of the netlist (design_ckt function) for updating the parameters accordingly.
 
 		"""
 
 		variablity_dict = {}
 		variablity_dict["Ninit"] = "Ndiscmin"
-		# check for each parameter and if set perform the varition and push into dict 
+
 		if self.vary_nmin:
-			ndisc_min_var = "Ndiscmin{} ".format(iteration)
+			ndisc_min_var = f"Ndiscmin{iteration} "
 			variablity_dict["Ndiscmin"] = variablity_dict["Ninit"] = ndisc_min_var
 		if self.vary_nmax:
-			ndisc_max_var = "Ndiscmax{} ".format(iteration)
+			ndisc_max_var = f"Ndiscmax{iteration} "
 			variablity_dict["Ndiscmax"] = ndisc_max_var
 		if self.vary_ldet:
-			lnew_var = "lnew{} ".format(iteration)
+			lnew_var = f"lnew{iteration} "
 			variablity_dict["lnew"] = lnew_var
 		if self.vary_rdet:
-			rnew_var = "rnew{}".format(iteration)
+			rnew_var = f"rnew{iteration}"
 			variablity_dict["rnew"] = rnew_var
 
 		return variablity_dict
@@ -79,15 +71,10 @@ class parameters(object):  # base class for parameters
 
 	def set_input_voltages(self, volt_r = [], volt_c = []):
 		"""
-		set the input voltages to the cross bar
+		It takes as input the voltage pulses description for each row and columns (which are takes as input via a csv file) and appends
+		them to the circuit parameters, in order to be used later with the design_voltage_sources function to generate a string for the netlist.
+		It checks for an eventual difference between the xbar size and the input pulses, and manages such cases.
 
-		input: type - (Vpulse, Vsource)  -Pulse input or sin input
-			   vol0, vol1 - voltage levels
-			   time_period
-			   Pulse_width
-			   rise_time
-			   fall_time
-		output: Initialize all the variables for voltage sequence 
 
 		"""
 		self.input_type_r, self.input_type_c = [], []
@@ -101,22 +88,22 @@ class parameters(object):  # base class for parameters
 		def_vol = ["pulse", 0, 0, "0", "0", "0", "0"]
 
 		if self.rows < len(volt_r):
-			print("There are {} voltage pulses but only {} rows -> {} voltage pulses are ignored\n".format(len(volt_r), self.rows, len(volt_r)-self.rows))
+			print(f"There are {len(volt_r)} voltage pulses but only {self.rows} rows -> {len(volt_r)-self.rows} voltage pulses are ignored.\n")
 			while self.rows != len(volt_r):
 				volt_r.pop()
 		
 		if self.columns < len(volt_c):
-			print("There are {} voltage pulses but only {} columns -> {} voltage pulses are ignored\n".format(len(volt_c), self.columns, len(volt_c)-self.columns))
+			print(f"There are {len(volt_c)} voltage pulses but only {self.columns} columns -> {len(volt_c)-self.columns} voltage pulses are ignored.\n")
 			while self.columns != len(volt_c):
 				volt_c.pop()
 		
 		if self.rows > len(volt_r):
-			print("There are {} rows, but only {} voltage pulses are defined -> {} null voltages are added\n".format(self.rows, len(volt_r), self.rows - len(volt_r)))
+			print(f"There are {self.rows} rows, but only {len(volt_r)} voltage pulses are defined -> {self.rows - len(volt_r)} null voltages are added.\n")
 			while self.rows != len(volt_r):
 				volt_r.append(def_vol)
 		
 		if self.columns > len(volt_c):
-			print("There are {} columns, but only {} voltage pulses are defined -> {} null voltages are added\n".format(self.columns, len(volt_c), self.columns - len(volt_c)))
+			print(f"There are {self.columns} columns, but only {len(volt_c)} voltage pulses are defined -> {self.columns - len(volt_c)} null voltages are added.\n")
 			while self.columns != len(volt_c):
 				volt_c.append(def_vol)
 
@@ -143,7 +130,7 @@ class parameters(object):  # base class for parameters
 	def set_simulation_params(self, type_ = "tran", stop_time = "5u", maxstep = "1u"):
 
 		"""
-			intilize all the parameters required for spectre simulation
+			Intilize all the parameters required for spectre simulation
 			input: type_ -> type of analysis (DC, tran)
 					stop_time -> simulation run time
 					maxstep -> maximum step size.
@@ -157,7 +144,7 @@ class parameters(object):  # base class for parameters
 		self.simulation_maxstep = maxstep
 
 
-		print("Stop time: {}s, Max step: {}s.\n".format(self.simulation_stop_time,self.simulation_maxstep))
+		print(f"Stop time: {self.simulation_stop_time}s, Max step: {self.simulation_maxstep}s.\n")
 
 	def set_cross_bar_params(self, rows = 5, columns = 5):
 
@@ -168,12 +155,12 @@ class parameters(object):  # base class for parameters
 		self.rows = rows
 		self.columns = columns
 
-		print("{}x{} crossbar generated.\n".format(self.rows,self.columns))
+		print(f"{self.rows}x{self.columns} crossbar generated.\n")
 		return (self.rows,self.columns)
 
 	def set_variablity(self, Nmin=False, Nmax=False, rdet=False, ldet=False):
 		"""
-		check the variablity parameters and set paraticular varilble and append it to dict
+		Check the variablity parameters and set paraticular varilble and append it to dict
 		
 		"""
 		self.vary_nmin = Nmin
@@ -185,17 +172,14 @@ class parameters(object):  # base class for parameters
 
 	def copy_param(self):
 		"""
-		returns a deep copy of itself
-		:return params:
-		:rtype: Parameters
-
+		Returns a deep copy of itself
 		"""
 		params = copy.deepcopy(self)
 		return params
 	def print_parameters(self):
 
 		"""
-		for debussing, print the device parameters
+		For debugging, print the device parameters
 		"""
 
 		print ("---- device parameter values ----- \n", self.device_parameters)
