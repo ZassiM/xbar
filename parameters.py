@@ -11,11 +11,6 @@ class parameters(object):  # base class for parameters
 			exit()
 		if device =="var":
 			self.device_model= "JART_VCM_1b_VAR"
-			self.model_path = "/net/home/zahr/Downloads/counterfeit/JART_VCM_1b_verilog-var.va" # change this path according to local path
-		else:
-			self.device_model= "JART_VCM_1b_det"
-			# TO-DO
-			print ("please slelect the device = var")
 
 		#self.set_default_params()
 
@@ -23,7 +18,6 @@ class parameters(object):  # base class for parameters
 		"""
 			Generates a string containing all the parameters for each memristor. It is used during the generation of the netlist
 			(design_ckt function) in appending the string for each instance
-
 
 		"""
 
@@ -71,10 +65,10 @@ class parameters(object):  # base class for parameters
 
 	def set_input_voltages(self, volt_r = [], volt_c = []):
 		"""
+
 		It takes as input the voltage pulses description for each row and columns (which are takes as input via a csv file) and appends
 		them to the circuit parameters, in order to be used later with the design_voltage_sources function to generate a string for the netlist.
 		It checks for an eventual difference between the xbar size and the input pulses, and manages such cases.
-
 
 		"""
 		self.input_type_r, self.input_type_c = [], []
@@ -147,9 +141,8 @@ class parameters(object):  # base class for parameters
 		print(f"Stop time: {self.simulation_stop_time}s, Max step: {self.simulation_maxstep}s.\n")
 
 	def set_cross_bar_params(self, rows = 5, columns = 5):
-
 		"""
-		initilize the cross bar based on the number of input
+			initilize the cross bar based on the number of input
 		"""
 
 		self.rows = rows
@@ -160,7 +153,7 @@ class parameters(object):  # base class for parameters
 
 	def set_variablity(self, Nmin=False, Nmax=False, rdet=False, ldet=False):
 		"""
-		Check the variablity parameters and set paraticular varilble and append it to dict
+			check the variablity parameters and set paraticular varilble and append it to dict
 		
 		"""
 		self.vary_nmin = Nmin

@@ -14,7 +14,7 @@
     "sim_params": {
         "type" : "tran",
         "stop_time" : "5u",
-        "max_step" : "1u"
+        "max_step" : "1u",
+        "model_file": "JART_VCM_1b_verilog-var.va"
     }
-
 }
