@@ -1,5 +1,9 @@
+import numpy as np
+from numpy import nan
+import math
 from ckt_gen import netlist_design
-import csv
+import json
+import pandas as pd
 
 """
 This is the main function which defined the flow of code by calling different classes in it.
@@ -27,68 +31,50 @@ static_param = {"eps": 17,"epsphib":5.5,"phibn0":0.18, "phin":0.1,"un":4e-06,
 params_read = 0 # number of parameters read on the csv format file
 volt_r, volt_c = [], [] # 
 
+with open('config.json', 'r') as f:
+	data = json.load(f)
 
-csv_file = open('config.txt', 'r')  
-config = csv.reader(csv_file)
+	# read rows and columns
+	rows, columns = data['xbar_sizes']['rows'], data['xbar_sizes']['columns']
 
-for c in config: # read line per line from the csv file
-	if(not c or c[0][0]=='#'):  # skip empty line or comment
-		if params_read == 4 or params_read == 5:  # used to correctly pass from row to columns voltage read
-			params_read += 1
+	# create dict with variability params bools
+	nmin_b, nmax_b, ldet_b, rdet_b = data['var_bools']['ndiscmin'], data['var_bools']['ndiscmax'], data['var_bools']['ldet'], data['var_bools']['rdet']
+
+	# tune the simulation parameters  - duration of simulation and step you want to take
+	sim_type, stop_time, max_step = data['sim_params']['type'], data['sim_params']['stop_time'], data['sim_params']['max_step']
+
+df = pd.read_csv('pulses.csv',skip_blank_lines=False)
+
+df_list = df.values.tolist()
+to_col = 0
+for r in df_list:
+	if str(r[0]) == 'nan':
+		to_col = 1
 		continue
+	if to_col == 0:
+		volt_r.append(r)
+	else:
+		volt_c.append(r)
 
-	elif params_read != 4 and params_read != 5:	
-		params_read += 1
-
-	if params_read == 1:	# rows and columns params
-		try:
-			rows, columns = (int(c[0]), int(c[1]))
-
-		except:
-			print("Rows and columns are set to default!\n")
-
-		
-	if params_read == 2:	# variability bools
-		try:
-			nmin_b, nmax_b, ldet_b, rdet_b = (int(c[0]), int(c[1]), int(c[2]), int(c[3]))
-				# create dict with variability params bools
-
-		except:
-			print("Variability parameters are disabled by default!\n")
-			
-		
-		# use the dict created before to generate a string containing the (eventual) updated parameters used for the memristor instances
-		
-
-	if params_read == 3:	# simulation parameters
-		try:
-			sim_type, stop_time, max_step = (c[0]), c[1], (c[2])
-			# tune the simulation parameters  - duration of simulation and step you want to take
-
-		except:
-			print("Simulation parameters are set to default!\n")
-
-	if params_read == 4:	# row voltage pulses
-		volt_r.append(c)     
-
-	if params_read == 5:	# columns voltage pulses
-		volt_c.append(c)
-
-csv_file.close()
+# set xbar size
+cross_bar = ckt.set_cross_bar_params(rows, columns)
 
 # set input voltages using the list read by the file
 ckt.set_input_voltages(volt_r, volt_c)
 
-cross_bar = ckt.set_cross_bar_params(rows, columns) # set xbar size
 
-bools_var = ckt.set_variablity(Nmin = nmin_b, Nmax = nmax_b, ldet = ldet_b, rdet = rdet_b)
+# creates a dict for checking if the variabilities for each parameters are set
+var_bools = ckt.set_variablity(Nmin = nmin_b, Nmax = nmax_b, ldet = ldet_b, rdet = rdet_b)
 
-var_param = ckt.update_param(static_param_sim, mean_sigma, bools_var)
+# update the parameters of the memristors in case the var_bools are set
+var_param = ckt.update_param(static_param_sim, mean_sigma, var_bools)
 
-ckt.set_simulation_params(sim_type, stop_time, max_step)
 # create spectre netlist using the parameters set before and the static and variab parameters
 netlist = ckt.design_ckt(var_param, static_param) 
 
-# write into file, name of file can be given as argument - (file_name = "auto_generated.scs")
+# tune the simulator
+ckt.set_simulation_params(sim_type, stop_time, max_step)
+
+# write the netlist and the sim configutation into the scs file 
 ckt.write_into_file(out_file_name, netlist)  
 

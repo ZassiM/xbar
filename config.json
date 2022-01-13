@@ -1,0 +1,20 @@
+{
+    "xbar_sizes": {
+        "rows" : 5,
+        "columns": 5
+    },
+
+    "var_bools": {
+        "ndiscmin" : 0,
+        "ndiscmax" : 1,
+        "ldet" : 0,
+        "rdet" : 0
+    },
+
+    "sim_params": {
+        "type" : "tran",
+        "stop_time" : "5u",
+        "max_step" : "1u"
+    }
+
+}

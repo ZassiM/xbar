@@ -123,7 +123,7 @@ class netlist_design(parameters):
 		file_.write(path_)
 
 		# type of anaylsis - only trans analysis
-		ana_sis = f"trans {self.simulation_type} stop={self.simulation_stop_tim} errpreset=conservative maxstep ={self.simulation_maxstep} write=\"spectre.ic\" \
+		ana_sis = f"trans {self.simulation_type} stop={self.simulation_stop_time} errpreset=conservative maxstep ={self.simulation_maxstep} write=\"spectre.ic\" \
 		writefinal=\"spectre.fc\" annotate=status maxiters=5"
 		ana_sis = ana_sis + "\nsaveOptions options save=allpub"  # type of analysis + saving the input and output current 
 		file_.write(ana_sis)
